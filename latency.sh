@@ -1,6 +1,6 @@
 #!/bin/bash
 # 网络延迟一键检测工具 - Interactive Network Latency Tester
-# Version: 1.0
+# Version: 1.1
 
 set -euo pipefail
 
@@ -16,73 +16,45 @@ NC='\033[0m'
 # 配置变量
 PING_COUNT=3
 
-# 基础网站列表（8个）
-declare -A BASIC_SITES=(
-    ["Google"]="google.com"
-    ["GitHub"]="github.com"
-    ["Apple"]="apple.com"
-    ["Microsoft"]="microsoft.com"
-    ["Amazon"]="amazon.com"
-    ["Twitter"]="twitter.com"
-    ["ChatGPT"]="openai.com"
-    ["Steam"]="steampowered.com"
-)
-
-# 完整网站列表（20个）
+# 完整网站列表
 declare -A FULL_SITES=(
-    ["Google"]="google.com"
-    ["GitHub"]="github.com"
     ["Apple"]="apple.com"
+	["Amazon"]="amazon.com"
+	["Google"]="google.com"
+    ["YouTube"]="youtube.com"
+	["YouTubeImg"]="i.ytimg.com"
     ["Microsoft"]="microsoft.com"
-    ["Amazon"]="amazon.com"
+	["Bing"]="bing.com"
     ["Twitter"]="twitter.com"
-    ["ChatGPT"]="openai.com"
+    ["ChatGPT"]="api.oaipro.com"
+	["Claude"]="api.anthropic.com"
+	["Gemini"]="generativelanguage.googleapis.com"
+ 	["Grok"]="api.x.ai"
     ["Steam"]="steampowered.com"
     ["Netflix"]="netflix.com"
     ["Disney"]="disneyplus.com"
     ["Instagram"]="instagram.com"
     ["Telegram"]="tg.d1ss.eu.org"
+	["TelegramWeb"]="web.telegram.org"
     ["Dropbox"]="dropbox.com"
     ["OneDrive"]="onedrive.live.com"
     ["Mega"]="mega.io"
     ["Twitch"]="twitch.tv"
     ["Pornhub"]="pornhub.com"
-    ["YouTube"]="youtube.com"
     ["Facebook"]="facebook.com"
     ["TikTok"]="tiktok.com"
+	["NodeSeek"]="www.nodeseek.com"
+	["LinuxDo"]="linux.do"
+	["Cloudflare"]="cloudflare.com"
+	["LowEndTalk"]="lowendtalk.com"
+	["GitHub"]="github.com"
+	["GithubuSercontent"]="release-assets.githubusercontent.com"
+	["Cursor"]="api2.cursor.sh"
+
 )
 
 # 结果数组
 declare -a RESULTS=()
-
-# 显示欢迎界面
-show_welcome() {
-    clear
-    echo -e "${CYAN}╔═══════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║                                                               ║${NC}"
-    echo -e "${CYAN}║            🚀 ${YELLOW}网络延迟一键检测工具${CYAN}                     ║${NC}"
-    echo -e "${CYAN}║                                                               ║${NC}"
-    echo -e "${CYAN}║        快速检测您的网络连接到各大网站的延迟情况                 ║${NC}"
-    echo -e "${CYAN}║                                                               ║${NC}"
-    echo -e "${CYAN}╚═══════════════════════════════════════════════════════════════╝${NC}"
-    echo ""
-}
-
-# 显示主菜单
-show_menu() {
-    echo -e "${BLUE}┌─────────────────────────────────────────────────────────────┐${NC}"
-    echo -e "${BLUE}│                        🎯 选择测试模式                        │${NC}"
-    echo -e "${BLUE}├─────────────────────────────────────────────────────────────┤${NC}"
-    echo -e "${BLUE}│                                                             │${NC}"
-    echo -e "${BLUE}│  ${GREEN}1${NC} ⚡ 标准测试   ${YELLOW}(8个主要网站，推荐)${NC}                     ${BLUE}│${NC}"
-    echo -e "${BLUE}│                                                             │${NC}"
-    echo -e "${BLUE}│  ${GREEN}2${NC} 🌐 完整测试   ${YELLOW}(20个网站，全面检测)${NC}                    ${BLUE}│${NC}"
-    echo -e "${BLUE}│                                                             │${NC}"
-    echo -e "${BLUE}│  ${RED}0${NC} 🚪 退出程序                                       ${BLUE}│${NC}"
-    echo -e "${BLUE}│                                                             │${NC}"
-    echo -e "${BLUE}└─────────────────────────────────────────────────────────────┘${NC}"
-    echo ""
-}
 
 # 测试TCP连接延迟
 test_tcp_latency() {
@@ -220,51 +192,6 @@ test_site_latency() {
     fi
 }
 
-# 执行测试
-run_test() {
-    local mode=$1
-    local site_count=""
-    
-    clear
-    show_welcome
-    
-    # 选择要测试的网站
-    declare -A SITES=()
-    if [ "$mode" = "1" ]; then
-        for key in "${!BASIC_SITES[@]}"; do
-            SITES["$key"]="${BASIC_SITES[$key]}"
-        done
-        site_count="8"
-        echo -e "${CYAN}🎯 开始标准测试 (8个主要网站)${NC}"
-    else
-        for key in "${!FULL_SITES[@]}"; do
-            SITES["$key"]="${FULL_SITES[$key]}"
-        done
-        site_count="20"
-        echo -e "${CYAN}🌐 开始完整测试 (20个网站)${NC}"
-    fi
-    
-    echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "测试参数: ${YELLOW}${site_count}个网站${NC} | Ping次数: ${YELLOW}${PING_COUNT}${NC}"
-    echo ""
-    
-    # 重置结果数组
-    RESULTS=()
-    local start_time=$(date +%s)
-    
-    # 执行测试
-    for service in "${!SITES[@]}"; do
-        host="${SITES[$service]}"
-        test_site_latency "$host" "$service"
-    done
-    
-    local end_time=$(date +%s)
-    local total_time=$((end_time - start_time))
-    
-    # 显示结果
-    show_results "$total_time"
-}
-
 # 显示测试结果
 show_results() {
     local total_time=$1
@@ -351,26 +278,13 @@ show_results() {
         fi
     fi
     
-    # 保存结果
-    local output_file="latency_results_$(date +%Y%m%d_%H%M%S).txt"
-    {
-        echo "# 网络延迟测试结果 - $(date)"
-        echo "# 服务|域名|延迟|状态"
-        printf '%s\n' "${RESULTS[@]}"
-    } > "$output_file"
-    
-    echo ""
-    echo -e "💾 结果已保存到: ${GREEN}$output_file${NC}"
     echo ""
     echo -e "${CYAN}💡 延迟等级说明:${NC}"
     echo -e "  ${GREEN}🟢 优秀${NC} (< 50ms)     - 适合游戏、视频通话"
     echo -e "  ${YELLOW}🟡 良好${NC} (50-150ms)   - 适合网页浏览、视频"
     echo -e "  ${RED}🔴 较差${NC} (150-500ms)  - 基础使用，可能影响体验"
     echo -e "  ${RED}💀 很差${NC} (> 500ms)    - 网络质量很差"
-    
-    echo ""
-    echo -n -e "${YELLOW}按 Enter 键返回主菜单...${NC}"
-    read -r
+	echo ""
 }
 
 # 检查并安装依赖
@@ -523,44 +437,25 @@ show_manual_install_instructions() {
     echo ""
 }
 
-# 主循环
 main() {
-    # 检查依赖
     check_dependencies
+    clear
+    # 重置结果数组
+    RESULTS=()
+    local start_time=$(date +%s)
     
-    while true; do
-        show_welcome
-        show_menu
-        
-        # 读取用户输入，确保等待输入
-        echo -n -e "${YELLOW}请选择 (0-2): ${NC}"
-        read -r choice
-        
-        # 处理空输入
-        if [ -z "$choice" ]; then
-            continue
-        fi
-        
-        case $choice in
-            1)
-                run_test "1"
-                ;;
-            2)
-                run_test "2"
-                ;;
-            0)
-                echo ""
-                echo -e "${GREEN}👋 感谢使用网络延迟检测工具！${NC}"
-                echo -e "${CYAN}🌟 项目地址: https://github.com/Cd1s/network-latency-tester${NC}"
-                exit 0
-                ;;
-            *)
-                echo -e "${RED}❌ 无效选择，请输入 0、1 或 2${NC}"
-                echo -n -e "${YELLOW}按 Enter 键继续...${NC}"
-                read -r
-                ;;
-        esac
+    # 执行测试
+    for key in "${!FULL_SITES[@]}"; do
+        host="${FULL_SITES[$key]}"
+        test_site_latency "$host" "$key"
     done
+    
+    local end_time=$(date +%s)
+    local total_time=$((end_time - start_time))
+    
+    # 显示结果
+    show_results "$total_time"
+	exit 0
 }
 
 # 运行主程序
