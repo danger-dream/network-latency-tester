@@ -51,6 +51,7 @@ declare -A FULL_SITES=(
 	["GithubuSercontent"]="release-assets.githubusercontent.com"
 	["Cursor"]="api2.cursor.sh"
     ["Yandex"]="yandex.com"
+	["Dzen"]="dzen.ru"
 
 )
 
